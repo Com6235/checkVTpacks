@@ -101,6 +101,7 @@ Packs:
 	GlassDoors
 	3DTiles
 	3DDoors
+	Fullbright
 
 Combined packs:
 	3DDoors+3DTiles+GlassDoors

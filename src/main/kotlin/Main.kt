@@ -21,14 +21,14 @@ import kotlin.io.path.readLines
 @Serializable
 data class SelectedPacks(val Version: String, val Packs: List<String>, val `Combined packs`: List<String>)
 @Serializable
-data class BadPacks(val badPacks: List<String>)
+data class BadPacks(val badpacks: List<String>)
 
 val lang = ResourceBundle.getBundle("lang")
 val badSelected by lazy {
     Json.decodeFromString<BadPacks>(
         HttpClient.newHttpClient()
             .send(
-                HttpRequest.newBuilder(URI.create("https://github.com/com6235/checkVTpacks/"))
+                HttpRequest.newBuilder(URI.create("https://raw.githubusercontent.com/Com6235/checkVTpacks/meta/badpacks.json"))
                     .GET()
                     .build(),
                 HttpResponse.BodyHandlers.ofString()
@@ -58,8 +58,10 @@ fun main(args: Array<String>) {
         }
     }
 
-    if (out != null) {
+    if (!out.isNullOrEmpty()) {
         println(translated("bad-packs", out.joinToString { " - $it \n" }))
+    } else if (out != null && out.isEmpty()) {
+        println(translated("no-bad-packs"))
     }
 }
 
@@ -71,7 +73,7 @@ fun parseTxt(path: Path): List<String> {
     }
 
     val yaml = Yaml.default.decodeFromString(SelectedPacks.serializer(), lines.subList(1, lines.size).joinToString("\n").replace("\t", "  - "))
-    return yaml.Packs.filter { it in badSelected.badPacks }
+    return yaml.Packs.filter { it in badSelected.badpacks }
 }
 
 fun unzip(zipFile: File, output: Path) {
