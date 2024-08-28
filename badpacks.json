@@ -1,14 +1,14 @@
 {
   "badpacks": [
     "Fullbright",
-    "Ore Borders",
-    "Suspicious Sand & Gravel Borders",
-    "Budding Amethyst Borders",
-    "Lower Fire",
-    "Clearer Water",
-    "Mob Spawn Indicator",
-    "No Pumpkin Overlay",
-    "Translucent Pumpkin Overlay",
-    "Short Swords"
+    "OreBorders",
+    "SuspiciousSandGravelBorders",
+    "BuddingAmethystBorders",
+    "LowerFire",
+    "ClearerWater",
+    "MobSpawnIndicator",
+    "NoPumpkinOverlay",
+    "TranslucentPumpkinOverlay",
+    "ShortSwords"
   ]
 }
