@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version "2.0.20"
     kotlin("plugin.serialization") version "2.0.20"
+    id("com.gradleup.shadow") version "8.3.0"
+    application
 }
 
 group = "io.github.com6235"
@@ -21,4 +23,12 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(21)
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}
+
+application {
+    mainClass = "io.github.com6235.MainKt"
 }
