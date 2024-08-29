@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
         "txt" -> parseTxt(path.readLines())
         "zip" -> parseTxt(unzip(path.toFile()))
         else -> null
-    }
+    }?.distinct()
 
     if (!out.isNullOrEmpty()) {
         println(translated("bad-packs", out.joinToString("") { " - $it \n" }))
@@ -68,7 +68,19 @@ fun parseTxt(lines: List<String>): List<String>? {
     }
 
     val yaml = Yaml(configuration = YamlConfiguration(strictMode = false)).decodeFromString(SelectedPacks.serializer(), lines.subList(1, lines.size).joinToString("\n").replace("\t", "  - "))
-    return yaml.Packs?.filter { it in badSelected.badpacks }
+
+    val badCombined = yaml.`Combined packs`?.map { it.split("+") }
+        ?.map { it.filter { it in badSelected.badpacks } }
+        ?.filter { it.isNotEmpty() }
+        ?.reduceOrNull { a, b -> a + b }
+        ?: listOf()
+
+    return yaml.Packs?.filter { it in badSelected.badpacks }?.add(badCombined)
+}
+
+fun <T> List<T>.add(other: List<T>): List<T> {
+    val list = this.toMutableList()
+    return list + other
 }
 
 fun unzip(zipFile: File): List<String> {
