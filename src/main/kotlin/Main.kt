@@ -5,16 +5,13 @@ import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.FileOutputStream
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.file.Path
 import java.util.*
-import java.util.zip.ZipInputStream
+import java.util.zip.ZipFile
 import kotlin.io.path.Path
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.extension
 import kotlin.io.path.readLines
 
@@ -50,33 +47,23 @@ fun main(args: Array<String>) {
     val path = try { Path(args[0]) } catch (e: Exception) { return println(translated("arg-not-path", args[0])) }
 
     val out = when (path.extension.lowercase()) {
-        "txt" -> parseTxt(path)
-        // TODO fix zip archives
-        "zip" -> {
-            val pwd = Path(System.getProperty("user.dir"))
-            unzip(path.toFile(), pwd)
-
-            val file = Path(pwd.absolutePathString(), "Selected Packs.txt")
-            parseTxt(file)
-
-        }
-        else -> {
-            println(translated("file-not-understood"))
-            null
-        }
+        "txt" -> parseTxt(path.readLines())
+        "zip" -> parseTxt(unzip(path.toFile()))
+        else -> null
     }
 
     if (!out.isNullOrEmpty()) {
-        println(translated("bad-packs", out.joinToString { " - $it \n" }))
+        println(translated("bad-packs", out.joinToString("") { " - $it \n" }))
     } else if (out != null && out.isEmpty()) {
         println(translated("no-bad-packs"))
+    } else if (out == null) {
+        println(translated("file-not-understood"))
     }
 }
 
-fun parseTxt(path: Path): List<String>? {
-    val lines = path.readLines()
+fun parseTxt(lines: List<String>): List<String>? {
     if (lines[0] != "Vanilla Tweaks Resource Pack") {
-        println(translated("bad-txt", path.absolutePathString()))
+        println(translated("bad-txt"))
         return listOf()
     }
 
@@ -84,26 +71,9 @@ fun parseTxt(path: Path): List<String>? {
     return yaml.Packs?.filter { it in badSelected.badpacks }
 }
 
-fun unzip(zipFile: File, output: Path) {
-    val buffer = ByteArray(16384)
-    val zis = ZipInputStream(zipFile.inputStream())
-    var zipEntry = zis.nextEntry
-    while (zipEntry != null) {
-        if (zipEntry.name != "Selected Packs.txt") return
-        val newFile = File(output.toFile(), zipEntry.name)
-        if (zipEntry.isDirectory) {
-            continue
-        } else {
-            val fos = FileOutputStream(newFile)
-            var len: Int
-            while ((zis.read(buffer).also { len = it }) > 0) {
-                fos.write(buffer, 0, len)
-            }
-            fos.close()
-        }
-        zipEntry = zis.nextEntry
-    }
-
-    zis.closeEntry()
-    zis.close()
+fun unzip(zipFile: File): List<String> {
+    val zip = ZipFile(zipFile)
+    val packs = zip.getEntry("Selected Packs.txt").let { zip.getInputStream(it) }.reader().use { it.readLines() }
+    zip.close()
+    return packs
 }
